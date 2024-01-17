@@ -3,21 +3,43 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { FormikProvider, Form, useFormik } from "formik";
+import { Label } from "@/components/ui/label";
+import { AuthContext } from "@/contexts/authContext";
+import { axiosClient } from "@/lib/useAxios";
+import { postLogin } from "@/utils/functions/postLogin";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import React from "react";
+import React, { FormEvent, useContext } from "react";
 
 export default function Register() {
-  const handleSubmit = () => {};
+  const router = useRouter();
+  const { setIsAuth, setUserId } = useContext(AuthContext);
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-  const formik = useFormik({
-    onSubmit: handleSubmit,
-    initialValues: {
-      name: "",
-      email: "",
-      password: "",
-    },
-  });
+    const formData = new FormData(event.currentTarget);
+    const formDataObject = Object.fromEntries(formData);
+
+    console.log("formDataObject", formDataObject);
+
+    const payload = {
+      name: formDataObject.registerName as string,
+      email: formDataObject.registerEmail as string,
+      password: formDataObject.registerPassword as string,
+    };
+    console.log("payload", payload);
+
+    const { data } = await axiosClient.post("/auth/register", payload);
+
+    postLogin({
+      response: data,
+      setAuth: setIsAuth,
+      setId: setUserId,
+      router: router,
+      user: payload,
+    });
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-50 items-center justify-center p-7">
@@ -26,16 +48,41 @@ export default function Register() {
           <CardTitle>Register</CardTitle>
         </CardHeader>
         <CardContent className="p-8 h-full">
-          <FormikProvider value={formik}>
-            <Form>
-              <div className="flex flex-col w-full gap-y-4">
-                <Input placeholder="your name" name="name" />
-                <Input name="email" placeholder="email" />
-                <Input placeholder="password" type="password" name="password" />
-                <Button>Register an account</Button>
+          <form onSubmit={handleSubmit}>
+            <div className="flex flex-col w-full gap-y-6">
+              <div className="flex flex-col gap-y-2">
+                <Label htmlFor="registerName">Your name</Label>
+                <Input
+                  id="registerName"
+                  name="registerName"
+                  autoComplete="name"
+                />
               </div>
-            </Form>
-          </FormikProvider>
+
+              <div className="flex flex-col gap-y-2">
+                <Label htmlFor="registerEmail">Email</Label>
+                <Input
+                  id="registerEmail"
+                  name="registerEmail"
+                  autoComplete="username"
+                />
+              </div>
+
+              <div className="flex flex-col gap-y-2">
+                <Label htmlFor="registerPassword">Password</Label>
+                <Input
+                  id="registerPassword"
+                  type="password"
+                  name="registerPassword"
+                  autoComplete="new-password"
+                />
+              </div>
+              <Button type="submit">Register an account</Button>
+              <Link href="/login">
+                Already have an account? Proceed to login
+              </Link>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>
