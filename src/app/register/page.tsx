@@ -21,14 +21,11 @@ export default function Register() {
     const formData = new FormData(event.currentTarget);
     const formDataObject = Object.fromEntries(formData);
 
-    console.log("formDataObject", formDataObject);
-
     const payload = {
       name: formDataObject.registerName as string,
       email: formDataObject.registerEmail as string,
       password: formDataObject.registerPassword as string,
     };
-    console.log("payload", payload);
 
     const { data } = await axiosClient.post("/auth/register", payload);
 

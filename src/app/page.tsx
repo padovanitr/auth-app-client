@@ -31,8 +31,9 @@ export default function Home() {
 
   useEffect(() => {
     const getUserData = async () => {
-      if (userId) {
+      if (userId && isAuth) {
         const { data } = await axiosClient.get(`/user/${userId}`);
+
         setUserData({
           name: data.user.name,
           email: data.user.email,
@@ -41,16 +42,20 @@ export default function Home() {
     };
 
     getUserData();
-  }, [userId]);
+  }, [isAuth, userId]);
 
   return (
-    <div className="flex bg-slate-50 items-center justify-center p-7">
+    <div className="min-h-screen flex bg-slate-50 items-start justify-center p-7">
       <div className="flex flex-col gap-4">
         <h1>
           Welcome to the Auth-app{isAuth && userData && `, ${userData.name}`}
         </h1>
         {!isAuth && <h2>You are currently logged out</h2>}
-        <Button type="button" onClick={handleOnClick}>
+        <Button
+          className="self-center max-w-60 min-w-60"
+          type="button"
+          onClick={handleOnClick}
+        >
           {isAuth ? "Logout" : "Login"}
         </Button>
       </div>

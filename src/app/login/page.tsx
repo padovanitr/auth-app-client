@@ -10,23 +10,23 @@ import { postLogin } from "@/utils/functions/postLogin";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useContext } from "react";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
 export default function Login() {
   const router = useRouter();
   const { setIsAuth, setUserId } = useContext(AuthContext);
+  const mediumScreenMatches = window.matchMedia("(min-width: 768px)").matches;
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
     const formDataObject = Object.fromEntries(formData);
 
-    console.log("formDataObject", formDataObject);
-
     const payload = {
       email: formDataObject.loginEmail as string,
       password: formDataObject.loginPassword as string,
     };
-    console.log("payload", payload);
 
     const { data } = await axiosClient.post("/auth/login", payload);
 
@@ -36,6 +36,18 @@ export default function Login() {
       setId: setUserId,
       router: router,
       user: payload,
+    });
+  };
+
+  const loginWithGoogle = async (credentials: CredentialResponse) => {
+    const { data } = await axiosClient.post("/auth/login-google", credentials);
+
+    postLogin({
+      response: data,
+      setAuth: setIsAuth,
+      setId: setUserId,
+      router: router,
+      user: data,
     });
   };
 
@@ -68,6 +80,19 @@ export default function Login() {
               </div>
 
               <Button>Submit</Button>
+
+              <GoogleLogin
+                onSuccess={(credentialResponse) => {
+                  loginWithGoogle(credentialResponse);
+                }}
+                onError={() => {
+                  // eslint-disable-next-line no-console
+                  console.log("Login Failed");
+                }}
+                size="large"
+                width={mediumScreenMatches ? "374px" : "292px"}
+              />
+
               <Link href="/register">Register a new account instead</Link>
             </div>
           </form>
