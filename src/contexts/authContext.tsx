@@ -16,6 +16,8 @@ type AuthContextType = {
   setIsAuth: Dispatch<SetStateAction<boolean>>;
   userId: string;
   setUserId: Dispatch<SetStateAction<string>>;
+  loginStep: number;
+  setLoginStep: Dispatch<SetStateAction<number>>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -23,6 +25,8 @@ export const AuthContext = createContext<AuthContextType>({
   setIsAuth: () => {},
   userId: "",
   setUserId: () => {},
+  loginStep: 1,
+  setLoginStep: () => {},
 });
 
 export function AuthContextProvider({ children }: { children: ReactNode }) {
@@ -31,9 +35,12 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
   const useIdStorage = localStorage && localStorage.getItem(UserIdStorageKey);
   const [isAuth, setIsAuth] = useState(Boolean(isAuthStorage) || false);
   const [userId, setUserId] = useState(useIdStorage || "");
+  const [loginStep, setLoginStep] = useState(1);
 
   return (
-    <AuthContext.Provider value={{ isAuth, setIsAuth, userId, setUserId }}>
+    <AuthContext.Provider
+      value={{ isAuth, setIsAuth, userId, setUserId, loginStep, setLoginStep }}
+    >
       {children}
     </AuthContext.Provider>
   );

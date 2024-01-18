@@ -9,6 +9,7 @@ import {
 import { axiosClient } from "@/lib/useAxios";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
+import { startRegistration } from "@simplewebauthn/browser";
 
 export default function Home() {
   const router = useRouter();
@@ -26,6 +27,43 @@ export default function Home() {
       localStorage.removeItem(UserIdStorageKey);
     } else {
       router.push("/login");
+    }
+  };
+
+  const addWenAuthn = async () => {
+    const { data: options } = await axiosClient.post(
+      "/auth/webauth-registration-options",
+      { email: userData.email }
+    );
+    console.log("options", options);
+
+    options.authenticatorSelection.residentKey = "required";
+    options.authenticatorSelection.requireResidentKey = true;
+    options.extensions = {
+      credProps: true,
+    };
+
+    const authRes = await startRegistration(options);
+
+    console.log("authRes", authRes);
+
+    const verificationParamas = {
+      data: {
+        ...authRes,
+      },
+      user: {
+        email: userData.email,
+      },
+    };
+
+    const { data: verificationData } = await axiosClient.post(
+      "/auth/webauth-registration-verification",
+      verificationParamas
+    );
+    if (verificationData.ok) {
+      alert("You can now login using the registered method!");
+    } else {
+      alert(verificationData.message);
     }
   };
 
@@ -51,6 +89,15 @@ export default function Home() {
           Welcome to the Auth-app{isAuth && userData && `, ${userData.name}`}
         </h1>
         {!isAuth && <h2>You are currently logged out</h2>}
+        {isAuth && (
+          <Button
+            type="button"
+            className="self-center max-w-60 min-w-60"
+            onClick={addWenAuthn}
+          >
+            Add Authenticator / Passkey
+          </Button>
+        )}
         <Button
           className="self-center max-w-60 min-w-60"
           type="button"

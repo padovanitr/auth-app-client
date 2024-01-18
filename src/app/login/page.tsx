@@ -9,34 +9,49 @@ import { axiosClient } from "@/lib/useAxios";
 import { postLogin } from "@/utils/functions/postLogin";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { FormEvent, useContext } from "react";
+import React, { FormEvent, useContext, useEffect, useState } from "react";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
 export default function Login() {
+  const [formEmail, setFormEmail] = useState("");
+  const [message, setMessage] = useState("");
   const router = useRouter();
-  const { setIsAuth, setUserId } = useContext(AuthContext);
+  const { setIsAuth, setUserId, loginStep, setLoginStep } =
+    useContext(AuthContext);
   const mediumScreenMatches = window.matchMedia("(min-width: 768px)").matches;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     const formData = new FormData(event.currentTarget);
     const formDataObject = Object.fromEntries(formData);
 
-    const payload = {
-      email: formDataObject.loginEmail as string,
-      password: formDataObject.loginPassword as string,
-    };
+    if (loginStep === 1) {
+      const email = formDataObject.loginEmail as string;
+      checkAuthOptions(email);
+      setLoginStep(2);
+    } else {
+      const payload = {
+        email: formDataObject.loginEmail as string,
+        password: formDataObject.loginPassword as string,
+      };
 
-    const { data } = await axiosClient.post("/auth/login", payload);
+      const { data } = await axiosClient.post("/auth/login", payload);
 
-    postLogin({
-      response: data,
-      setAuth: setIsAuth,
-      setId: setUserId,
-      router: router,
-      user: payload,
-    });
+      postLogin({
+        response: data,
+        setAuth: setIsAuth,
+        setId: setUserId,
+        router: router,
+        user: payload,
+      });
+      setLoginStep(1);
+    }
+  };
+
+  const checkAuthOptions = async (email: string) => {
+    // call auth options endpoint
+    const { data } = await axiosClient.post("/auth/auth-options", { email });
+    console.log("data", data);
   };
 
   const loginWithGoogle = async (credentials: CredentialResponse) => {
@@ -50,6 +65,12 @@ export default function Login() {
       user: data,
     });
   };
+
+  useEffect(() => {
+    if (!formEmail) {
+      setLoginStep(1);
+    }
+  }, [formEmail, setLoginStep]);
 
   return (
     <div className="flex min-h-screen bg-slate-50 items-center justify-center p-7">
@@ -66,20 +87,23 @@ export default function Login() {
                   id="loginEmail"
                   name="loginEmail"
                   autoComplete="username"
+                  onChange={(event) => setFormEmail(event.target.value)}
                 />
               </div>
 
-              <div className="flex flex-col gap-y-2">
-                <Label htmlFor="loginPassword">Password</Label>
-                <Input
-                  id="loginPassword"
-                  type="password"
-                  name="loginPassword"
-                  autoComplete="current-password"
-                />
-              </div>
+              {loginStep === 1 ? null : (
+                <div className="flex flex-col gap-y-2">
+                  <Label htmlFor="loginPassword">Password</Label>
+                  <Input
+                    id="loginPassword"
+                    type="password"
+                    name="loginPassword"
+                    autoComplete="current-password"
+                  />
+                </div>
+              )}
 
-              <Button>Submit</Button>
+              <Button>Continue</Button>
 
               <GoogleLogin
                 onSuccess={(credentialResponse) => {
