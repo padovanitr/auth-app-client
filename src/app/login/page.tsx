@@ -13,6 +13,7 @@ import React, { FormEvent, useContext, useEffect, useState } from "react";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { startAuthentication } from "@simplewebauthn/browser";
+import { toast } from "sonner";
 
 type AuthOptions = {
   password: string;
@@ -36,6 +37,10 @@ export default function Login() {
 
     if (loginStep === 1) {
       const email = formDataObject.loginEmail as string;
+
+      if (!email) {
+        return;
+      }
       checkAuthOptions(email);
       setLoginStep(2);
     } else {
@@ -52,6 +57,7 @@ export default function Login() {
         setId: setUserId,
         router: router,
         user: payload,
+        toast,
       });
       setLoginStep(1);
     }
@@ -93,9 +99,10 @@ export default function Login() {
         setAuth: setIsAuth,
         setId: setUserId,
         router: router,
+        toast,
       });
     } else {
-      alert(verificationRes.message as string);
+      toast(verificationRes.message as string, { duration: 3000 });
     }
   };
 
@@ -108,6 +115,7 @@ export default function Login() {
       setId: setUserId,
       router: router,
       user: data,
+      toast,
     });
   };
 

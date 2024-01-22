@@ -10,6 +10,7 @@ import { axiosClient } from "@/lib/useAxios";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { startRegistration } from "@simplewebauthn/browser";
+import { toast } from "sonner";
 
 export default function Home() {
   const router = useRouter();
@@ -42,7 +43,12 @@ export default function Home() {
       credProps: true,
     };
 
-    const authRes = await startRegistration(options);
+    let authRes;
+    try {
+      authRes = await startRegistration(options);
+    } catch (error) {
+      return toast("Adding authentication aborted", { duration: 3000 });
+    }
 
     const verificationParamas = {
       data: {
@@ -59,9 +65,11 @@ export default function Home() {
     );
 
     if (verificationData.ok) {
-      alert("You can now login using the registered method!");
+      toast("You can now login using the registered method!", {
+        duration: 3000,
+      });
     } else {
-      alert(verificationData.message);
+      toast(verificationData.message, { duration: 3000 });
     }
   };
 
@@ -83,10 +91,12 @@ export default function Home() {
   return (
     <div className="min-h-screen flex bg-slate-50 items-start justify-center p-7">
       <div className="flex flex-col gap-4">
-        <h1>
-          Welcome to the Auth-app{isAuth && userData && `, ${userData.name}`}
-        </h1>
-        {!isAuth && <h2>You are currently logged out</h2>}
+        <div className="flex flex-col text-center gap-2">
+          <h1>
+            Welcome to the Auth-app{isAuth && userData && `, ${userData.name}`}
+          </h1>
+          {!isAuth && <h2>You are currently logged out</h2>}
+        </div>
         {isAuth && (
           <Button
             type="button"

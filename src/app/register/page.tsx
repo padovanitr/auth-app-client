@@ -9,6 +9,7 @@ import { axiosClient } from "@/lib/useAxios";
 import { postLogin } from "@/utils/functions/postLogin";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import React, { FormEvent, useContext } from "react";
 
@@ -35,6 +36,7 @@ export default function Register() {
       setId: setUserId,
       router: router,
       user: payload,
+      toast,
     });
   };
 
