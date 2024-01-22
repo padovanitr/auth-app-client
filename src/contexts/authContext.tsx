@@ -30,8 +30,7 @@ export const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthContextProvider({ children }: { children: ReactNode }) {
-  const isAuthStorage =
-    window.localStorage && localStorage.getItem(AuthedStorageKey);
+  const isAuthStorage = localStorage && localStorage.getItem(AuthedStorageKey);
   const useIdStorage = localStorage && localStorage.getItem(UserIdStorageKey);
   const [isAuth, setIsAuth] = useState(Boolean(isAuthStorage) || false);
   const [userId, setUserId] = useState(useIdStorage || "");

@@ -11,10 +11,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useContext, useEffect, useState } from "react";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
+import { ReloadIcon } from "@radix-ui/react-icons";
+import { startAuthentication } from "@simplewebauthn/browser";
+
+type AuthOptions = {
+  password: string;
+  google: string;
+  webAuthn: string;
+};
 
 export default function Login() {
   const [formEmail, setFormEmail] = useState("");
-  const [message, setMessage] = useState("");
+  const [authOptions, setAuthOptions] = useState<AuthOptions>();
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { setIsAuth, setUserId, loginStep, setLoginStep } =
     useContext(AuthContext);
@@ -49,9 +58,45 @@ export default function Login() {
   };
 
   const checkAuthOptions = async (email: string) => {
+    setIsLoading(true);
     // call auth options endpoint
     const { data } = await axiosClient.post("/auth/auth-options", { email });
-    console.log("data", data);
+
+    const options = {
+      password: data.password,
+      google: data.google,
+      webAuthn: data.webAuthn,
+    };
+    setAuthOptions(options);
+    setIsLoading(false);
+  };
+
+  const webAuthnLogin = async () => {
+    const options = await axiosClient.post("/auth/webauth-login-options", {
+      email: formEmail,
+    });
+
+    const loginRes = await startAuthentication(options.data);
+
+    const verificationPayload = {
+      email: formEmail,
+      data: loginRes,
+    };
+    const { data: verificationRes } = await axiosClient.post(
+      "/auth/webauth-login-verification",
+      verificationPayload
+    );
+
+    if (verificationRes.ok) {
+      postLogin({
+        response: verificationRes,
+        setAuth: setIsAuth,
+        setId: setUserId,
+        router: router,
+      });
+    } else {
+      alert(verificationRes.message as string);
+    }
   };
 
   const loginWithGoogle = async (credentials: CredentialResponse) => {
@@ -91,7 +136,7 @@ export default function Login() {
                 />
               </div>
 
-              {loginStep === 1 ? null : (
+              {loginStep !== 1 && (
                 <div className="flex flex-col gap-y-2">
                   <Label htmlFor="loginPassword">Password</Label>
                   <Input
@@ -103,7 +148,23 @@ export default function Login() {
                 </div>
               )}
 
-              <Button>Continue</Button>
+              {loginStep !== 1 && authOptions?.webAuthn && !isLoading && (
+                <Button
+                  onClick={webAuthnLogin}
+                  className="p-2 h-fit"
+                  type="button"
+                  variant="ghost"
+                >
+                  Login with WebAuthn / Passkey
+                </Button>
+              )}
+
+              <Button type="submit">
+                {isLoading && (
+                  <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Continue
+              </Button>
 
               <GoogleLogin
                 onSuccess={(credentialResponse) => {

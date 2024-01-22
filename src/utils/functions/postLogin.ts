@@ -11,7 +11,7 @@ interface PostLoginArguments {
   router: AppRouterInstance;
   setAuth: Dispatch<SetStateAction<boolean>>;
   setId: Dispatch<SetStateAction<string>>;
-  user: {
+  user?: {
     name?: string;
     email: string;
     password: string;

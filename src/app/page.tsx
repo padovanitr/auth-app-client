@@ -30,12 +30,11 @@ export default function Home() {
     }
   };
 
-  const addWenAuthn = async () => {
+  const addWebAuthn = async () => {
     const { data: options } = await axiosClient.post(
       "/auth/webauth-registration-options",
       { email: userData.email }
     );
-    console.log("options", options);
 
     options.authenticatorSelection.residentKey = "required";
     options.authenticatorSelection.requireResidentKey = true;
@@ -44,8 +43,6 @@ export default function Home() {
     };
 
     const authRes = await startRegistration(options);
-
-    console.log("authRes", authRes);
 
     const verificationParamas = {
       data: {
@@ -60,6 +57,7 @@ export default function Home() {
       "/auth/webauth-registration-verification",
       verificationParamas
     );
+
     if (verificationData.ok) {
       alert("You can now login using the registered method!");
     } else {
@@ -93,7 +91,7 @@ export default function Home() {
           <Button
             type="button"
             className="self-center max-w-60 min-w-60"
-            onClick={addWenAuthn}
+            onClick={addWebAuthn}
           >
             Add Authenticator / Passkey
           </Button>
