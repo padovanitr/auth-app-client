@@ -47,7 +47,7 @@ export default function Home() {
     try {
       authRes = await startRegistration(options);
     } catch (error) {
-      return toast("Adding authentication aborted", { duration: 3000 });
+      return toast("Adding authentication aborted", { duration: 5000 });
     }
 
     const verificationParamas = {
@@ -66,10 +66,10 @@ export default function Home() {
 
     if (verificationData.ok) {
       toast("You can now login using the registered method!", {
-        duration: 3000,
+        duration: 5000,
       });
     } else {
-      toast(verificationData.message, { duration: 3000 });
+      toast(verificationData.message, { duration: 5000 });
     }
   };
 

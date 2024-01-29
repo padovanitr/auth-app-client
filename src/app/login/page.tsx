@@ -102,7 +102,7 @@ export default function Login() {
         toast,
       });
     } else {
-      toast(verificationRes.message as string, { duration: 3000 });
+      toast(verificationRes.message as string, { duration: 5000 });
     }
   };
 
